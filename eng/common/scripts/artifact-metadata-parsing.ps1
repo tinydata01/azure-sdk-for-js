@@ -101,8 +101,7 @@ function IsMavenPackageVersionPublished($pkgId, $pkgVersion, $groupId) {
 
     Write-Host "VersionCheck to maven for packageId $pkgId failed with statuscode $statusCode"
     Write-Host $statusDescription
-    #exit(1)
-    return
+    exit(1)
   }
 }
 
@@ -395,12 +394,12 @@ function GetExistingTags($apiUrl) {
 }
 
 # Retrieve release tag for artiface package. If multiple packages, then output the first one.
-function RetrieveReleaseTag($pkgRepository, $artifactLocation, $continueOnError = $true) {
+function RetrieveReleaseTag($pkgRepository, $artifactLocation, $pkgName, $continueOnError = $true) {
   if (!$artifactLocation) {
     return ""
   }
   try {
-    $pkgs, $parsePkgInfoFn = RetrivePackages -pkgRepository $pkgRepository -artifactLocation $artifactLocation
+    $pkgs, $parsePkgInfoFn = RetrievePackages -pkgRepository $pkgRepository -artifactLocation $artifactLocation -pkgName $pkgName
     if (!$pkgs -or !$pkgs[0]) {
       return ""
     }
@@ -414,7 +413,7 @@ function RetrieveReleaseTag($pkgRepository, $artifactLocation, $continueOnError 
     Write-Error "No release tag retrieved from $artifactLocation"
   }
 }
-function RetrivePackages($pkgRepository, $artifactLocation) {
+function RetrievePackages($pkgRepository, $artifactLocation, $pkgName) {
   $parsePkgInfoFn = ""
   $packagePattern = ""
   $pkgRepository = $pkgRepository.Trim()
@@ -452,14 +451,19 @@ function RetrivePackages($pkgRepository, $artifactLocation) {
       exit(1)
     }
   }
-  $pkgs = Get-ChildItem -Path $artifactLocation -Include $packagePattern -Recurse -File
+  $file_regex = if (!$pkgName) {
+    $packagePattern
+  } else {
+    "$($pkgName)$($packagePattern)"
+  }
+  $pkgs = Get-ChildItem -Path $artifactLocation -Include $file_regex -Recurse -File
   return $pkgs, $parsePkgInfoFn
 }
 
 # Walk across all build artifacts, check them against the appropriate repository, return a list of tags/releases
 function VerifyPackages($pkgRepository, $artifactLocation, $workingDirectory, $apiUrl, $releaseSha,  $continueOnError = $false) {
   $pkgList = [array]@()
-  $pkgs, $parsePkgInfoFn = RetrivePackages -pkgRepository $pkgRepository -artifactLocation $artifactLocation
+  $pkgs, $parsePkgInfoFn = RetrievePackages -pkgRepository $pkgRepository -artifactLocation $artifactLocation
 
   foreach ($pkg in $pkgs) {
     try {
@@ -472,8 +476,7 @@ function VerifyPackages($pkgRepository, $artifactLocation, $workingDirectory, $a
       if ($parsedPackage.Deployable -ne $True -and !$continueOnError) {
         Write-Host "Package $($parsedPackage.PackageId) is marked with version $($parsedPackage.PackageVersion), the version $($parsedPackage.PackageVersion) has already been deployed to the target repository."
         Write-Host "Maybe a pkg version wasn't updated properly?"
-        return
-        #exit(1)
+        exit(1)
       }
 
       $pkgList += New-Object PSObject -Property @{
@@ -535,6 +538,6 @@ function CheckArtifactShaAgainstTagsList($priorExistingTagList, $releaseSha, $ap
 
   if ($unmatchedTags.Length -gt 0 -and !$continueOnError) {
     Write-Host "Tags already existing with different SHA versions. Exiting."
-    #exit(1)
+    exit(1)
   }
 }
