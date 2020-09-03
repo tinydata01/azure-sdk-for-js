@@ -149,7 +149,7 @@ stages:
                       - template: /eng/pipelines/templates/steps/stage-artifacts.yml
                         parameters:
                           SourceFolder: ${{parameters.ArtifactName}}
-                          TargetFolder: ${{artifact.safeName}}/${{parameters.ArtifactName}}
+                          TargetFolder: ${{artifact.safeName}}
                           PackageName: ${{artifact.name}}-*.tgz
                       - template: /eng/pipelines/templates/steps/stage-artifacts.yml
                         parameters:
@@ -162,7 +162,7 @@ stages:
                         displayName: Output Visible Artifacts
                       - template: /eng/common/pipelines/templates/steps/publish-blobs.yml
                         parameters:
-                          ArtifactLocation: '$(Pipeline.Workspace)/${{artifact.safeName}}/${{parameters.ArtifactName}}'
+                          ArtifactLocation: '$(Pipeline.Workspace)/${{artifact.safeName}}'
                           FolderForUpload: '$(Pipeline.Workspace)/${{artifact.safeName}}'
                           BlobSASKey: '$(azure-sdk-docs-prod-sas)'
                           BlobName: '$(azure-sdk-docs-prod-blob-name)'
