@@ -403,7 +403,9 @@ function RetrieveReleaseTag($pkgRepository, $artifactLocation, $pkgName, $contin
     if (!$pkgs -or !$pkgs[0]) {
       return ""
     }
-    $parsedPackage = &$parsePkgInfoFn -pkg $pkgs[0]
+    Write-Host "Here is first pkg $($pkgs[0].BaseName)"
+    $parsedPackage = &$parsePkgInfoFn -pkg $pkgs[0] -workingDirectory $artifactLocation
+    
     return $parsedPackage.ReleaseTag
   }
   catch {
@@ -457,6 +459,9 @@ function RetrievePackages($pkgRepository, $artifactLocation, $pkgName) {
     "$($pkgName)$($packagePattern)"
   }
   $pkgs = Get-ChildItem -Path $artifactLocation -Include $file_regex -Recurse -File
+  foreach ($pkg in $pkgs) {
+    Write-Host "Here is the p: $($pkg.BaseName)"
+  }
   return $pkgs, $parsePkgInfoFn
 }
 
