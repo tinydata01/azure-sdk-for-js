@@ -474,7 +474,7 @@ function VerifyPackages($pkgRepository, $artifactLocation, $workingDirectory, $a
         Write-Host "Maybe a pkg version wasn't updated properly?"
         exit(1)
       }
-
+      Write-Host "JS tag: $($parsedPackage.ReleaseTag)"
       $pkgList += New-Object PSObject -Property @{
         PackageId      = $parsedPackage.PackageId
         PackageVersion = $parsedPackage.PackageVersion
