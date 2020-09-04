@@ -256,8 +256,11 @@ function ParsePyPIPackage($pkg, $workingDirectory) {
   $releaseNotes = ""
   $readmeContent = ""
 
+  Write-Host "Here is the work folder: $workFolder"
   New-Item -ItemType Directory -Force -Path $workFolder
   Expand-Archive -Path $pkg -DestinationPath $workFolder
+
+  Get-ChildItem -Path "./" | Foreach-Object {Write-Host "$($_.BaseName), $($_.Extension)"}
 
   $changeLogLoc = @(Get-ChildItem -Path $workFolder -Recurse -Include "CHANGELOG.md")[0]
   if ($changeLogLoc) {
@@ -411,9 +414,9 @@ function RetrieveReleaseTag($pkgRepository, $artifactLocation, $continueOnError 
       }
       return ""
     }
-    Write-Host "This is the package: $($pkgs[0].BaseName)"
+    Write-Host "This is the package before: $($pkgs[0].BaseName)"
     $parsedPackage = &$parsePkgInfoFn -pkg $pkgs[0] -workDirectory $artifactLocation
-    Write-Host "This is the package: $($parsedPackage.PackageId)"
+    Write-Host "This is the package after: $($parsedPackage.PackageId)"
     return $parsedPackage.ReleaseTag
   }
   catch {
