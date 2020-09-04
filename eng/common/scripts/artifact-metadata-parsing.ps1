@@ -121,7 +121,9 @@ function ResolvePkgJson($workFolder) {
 
 # Parse out package publishing information given a .tgz npm artifact
 function ParseNPMPackage($pkg, $workingDirectory) {
+  Write-Host "1. $pkg"
   $workFolder = "$workingDirectory$($pkg.Basename)"
+  Write-Host "2. $workFolder"
   $origFolder = Get-Location
   $releaseNotes = ""
   $readmeContent = ""
@@ -403,6 +405,7 @@ function RetrieveReleaseTag($pkgRepository, $artifactLocation, $continueOnError 
   }
   try {
     $pkgs, $parsePkgInfoFn = RetrievePackages -pkgRepository $pkgRepository -artifactLocation $artifactLocation
+
     if (!$pkgs -or !$pkgs[0]) {
       Write-Host "No packages retrieved from artifact location."
       return ""
@@ -414,8 +417,9 @@ function RetrieveReleaseTag($pkgRepository, $artifactLocation, $continueOnError 
       }
       return ""
     }
-    Write-Host "This is the package before: $($pkgs[0].BaseName)"
-    $parsedPackage = &$parsePkgInfoFn -pkg $pkgs[0] -workDirectory $artifactLocation
+    Write-Host "This is the package before: $($pkgs[0].BaseName), $($pkgs[0].Extension)"
+    Write-Host "This is the package before: $parsePkgInfoFn"
+    $parsedPackage = &$parsePkgInfoFn -pkg $pkgs[0] -workingDirectory $artifactLocation
     Write-Host "This is the package after: $($parsedPackage.PackageId)"
     return $parsedPackage.ReleaseTag
   }
